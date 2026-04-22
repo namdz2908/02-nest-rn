@@ -1,8 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(8080);
+  const configService = app.get(ConfigService);
+  const port = configService.get('PORT');
+
+  // ValidationPipe là 1 cơ chế để hệ thống xử lí dữ liễu (xác thực và biến đổi) giữa request và controller
+  app.useGlobalPipes(new ValidationPipe(  
+    {
+      whitelist: true, // Khi set là true thì những trường không có trong DTO sẽ không được gửi trong request
+      forbidNonWhitelisted: true, // gặp trường không tồn tại thì báo exception
+    }
+  ));
+
+  app.setGlobalPrefix('api/v1', { exclude : [''] });
+
+  await app.listen(port);
 }
 bootstrap();
