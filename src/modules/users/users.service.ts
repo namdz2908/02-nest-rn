@@ -6,6 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/utils';
 import aqp from 'api-query-params';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -69,7 +70,7 @@ export class UsersService {
       .find(filter)
       .limit(pageSize)
       .skip(skip)
-      .select("-password") //loại trường password khỏi kết quả
+      .select("-password") //loại trường password khỏi results
       .sort(sort as any);
 
     return { results, totalPages };
@@ -79,11 +80,20 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(updateUserDto: UpdateUserDto) {
+    return await this.userModel.updateOne(
+      { _id: updateUserDto._id },
+      { $set: updateUserDto } // update những field truyền vào
+    )
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(_id: string) {
+    // Check id
+    if (mongoose.isValidObjectId(_id)) {
+      //delete
+      return this.userModel.deleteOne({ _id })
+    } else {
+      throw new BadRequestException(`Id: ${_id} không đúng định dạng của mongoose`)
+    }
   }
 }

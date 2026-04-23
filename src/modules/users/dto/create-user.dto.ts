@@ -22,10 +22,10 @@ export class CreateUserDto {
     image: string;
 
 
-    codeId: string;
+    // codeId: string;
 
 
-    codeExpired: Date;
+    // codeExpired: Date;
 
 }
 
