@@ -24,7 +24,11 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return this.usersService.findById(+id);
+  }
+
+  async findByEmail(email: string) {
+    return await this.usersService.findByEmail(email);
   }
 
   @Patch()
