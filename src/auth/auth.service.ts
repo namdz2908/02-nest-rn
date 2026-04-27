@@ -11,12 +11,13 @@ export class AuthService {
     private jwtService: JwtService
   ) { }
 
+  // logic xác thực mật khẩu viết chay
   async signIn(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(username);
     const isValidPassword = await comparePasswordHelper(pass, user?.password);
     if (!isValidPassword) {
       throw new UnauthorizedException("Username/Password không hợp lệ!");
-    }
+    } 
 
     const payload = { sub: user._id, username: user.email };
     return {
@@ -25,5 +26,29 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload),
     };
 
+  }
+
+  async validateUser(username: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByEmail(username);
+    const isValidPassword = await comparePasswordHelper(pass, user?.password);
+
+    if (!user || !isValidPassword) return null;
+
+    return user;
+
+    // const payload = { sub: user._id, username: user.email };
+    // return {
+    //   // 💡 Here the JWT secret key that's used for signing the payload 
+    //   // is the key that was passed in the JwtModule
+    //   access_token: await this.jwtService.signAsync(payload),
+    // };
+
+  }
+
+  async login(user: any) {
+    const payload = {username: user.email, sub: user._id, accountRole: user.role};
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }
