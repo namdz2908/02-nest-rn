@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './passport/local-auth.guard';
-import { JwtAuthGuard } from './passport/jwt-auth.guard';
+import { Public } from '@/decorators/customize';
 
 @Controller('auth')
 export class AuthController {
@@ -12,13 +12,14 @@ export class AuthController {
     Ý tưởng: Khi nhận request từ user, passport guard sẽ gọi đến strategy để thực hiện xác thực người đùng, nếu pass sẽ gán user vào request
   */
   @Post("login")
+  @Public() // <-- custom decorator
   @UseGuards(LocalAuthGuard) // gọi đến strategy local ở đây 
   handleLogin(@Request() req) {
     return this.authService.login(req.user); 
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   getProfile(@Request() req) {
     return req.user;
   }
