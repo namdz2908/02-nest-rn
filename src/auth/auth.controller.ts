@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './passport/local-auth.guard';
 import { Public } from '@/decorators/customize';
+import { CreateAuthDto } from './dto/create-auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -18,9 +19,9 @@ export class AuthController {
     return this.authService.login(req.user); 
   }
 
-  @Get('profile')
-  // @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req) {
-    return req.user;
+  @Post('register')
+  @Public()
+  register(@Body() registerDto: CreateAuthDto) {
+    return this.authService.handleRegister(registerDto);
   }
 }

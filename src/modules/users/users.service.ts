@@ -7,6 +7,9 @@ import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/utils';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import {v4 as uuidv4} from 'uuid';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class UsersService {
@@ -81,7 +84,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    return await this.userModel.findOne({email});
+    return await this.userModel.findOne({ email });
   }
 
   async update(updateUserDto: UpdateUserDto) {
@@ -99,5 +102,36 @@ export class UsersService {
     } else {
       throw new BadRequestException(`Id: ${_id} không đúng định dạng của mongoose`)
     }
+  }
+
+  async handleRegister(registerDto: CreateAuthDto) {
+    const { name, email, password} = registerDto;
+
+    // check email
+    const isExist = await this.isEmailExist(email); // Nếu không có await, isExist trả về 1 Promise mà không phải boolean
+    // Promise luôn là truethy nên luôn đi vào nhánh if và throw exception kể cả khi email đó chưa tồn tại trong db
+    if (isExist) {
+      throw new BadRequestException(`Email: ${email} đã tồn tại. Vui lòng sử dụng email khác.`);
+    }
+
+    // hash password
+    const hashPassword = await hashPasswordHelper(password);
+
+    const user = await this.userModel.create({ // đây là hàm create của mongoose, không phải là hàm create đang được định nghĩa
+      name,
+      email,
+      password: hashPassword,
+      isActive: false,
+      codeId: uuidv4(),
+      codeExpired: dayjs().add(1, 'minutes'),
+    })
+
+    // Trả phản hồi
+    return {
+      _id: user._id, // _id là quy ước định danh bản ghi của mongoose được tạo tự động
+    };
+    
+    // send email
+
   }
 }
