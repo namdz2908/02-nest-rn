@@ -16,6 +16,8 @@ import { ReviewsModule } from '@/modules/reviews/reviews.module';
 import { AuthModule } from '@/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
@@ -36,15 +38,38 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
       }),
       inject: [ConfigService],
     }),
-    AuthModule
+    AuthModule,
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        transport: {
+          host: config.get('MAIL_HOST'),
+          port: config.get('MAIL_PORT'),
+          auth: {
+            user: config.get<string>('MAIL_USER'),
+            pass: config.get<string>('MAIL_PASS'),
+          },
+        },
+        defaults: {
+          from: config.get('MAIL_FROM'),
+        },
+        preview: true,
+        template: {
+          dir: process.cwd() + '/src/mail/templates/',
+          adapter: new HandlebarsAdapter(),
+          options: { strict: true },
+        },
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [
     AppService,
     {
-    provide: APP_GUARD, // khai báo JwtAuthGuard ở app.module áp dụng global
-    useClass: JwtAuthGuard,
-  },
+      provide: APP_GUARD, // khai báo JwtAuthGuard ở app.module áp dụng global
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule { }
