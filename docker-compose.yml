@@ -1,6 +1,7 @@
 services:
   mongodb:
     image: mongo:5.0.15
+    container_name: namdz-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
@@ -12,4 +13,4 @@ services:
 volumes:
   mongodb_data_container:
 
-    # docker compose -p hoidanit-mongodb-4rn up -d
+    # docker compose -p namdz-mongodb up -d
