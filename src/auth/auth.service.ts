@@ -3,7 +3,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { comparePasswordHelper } from '@/helpers/utils';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, CodeAuthDto } from './dto/create-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +18,7 @@ export class AuthService {
     const isValidPassword = await comparePasswordHelper(pass, user?.password);
     if (!isValidPassword) {
       throw new UnauthorizedException("Username/Password không hợp lệ!");
-    } 
+    }
 
     const payload = { sub: user._id, username: user.email };
     return {
@@ -31,9 +31,10 @@ export class AuthService {
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(username);
+    if (!user) return null;
     const isValidPassword = await comparePasswordHelper(pass, user?.password);
 
-    if (!user || !isValidPassword) return null;
+    if (!isValidPassword) return null;
 
     return user;
 
@@ -47,7 +48,7 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = {username: user.email, sub: user._id, accountRole: user.role};
+    const payload = { username: user.email, sub: user._id, accountRole: user.role };
     return {
       user: {
         email: user.email,
@@ -57,9 +58,13 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
-  
+
   // Tái sử dụng CreateAuthDto làm luồng đăng ký tài khoản
   handleRegister = async (registerDto: CreateAuthDto) => {
     return await this.usersService.handleRegister(registerDto);
+  }
+
+  checkCode = async (data: CodeAuthDto) => {
+    return await this.usersService.handleActive(data);
   }
 }
