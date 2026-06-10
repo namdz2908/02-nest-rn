@@ -169,4 +169,32 @@ export class UsersService {
     }
 
   }
+
+  async retryActive(email: string) {
+    // check email
+    const user = await this.userModel.findOne({ email })
+
+    if (!user) throw new BadRequestException("Tài khoản không tồn tại!");
+    if (user.isActive) {
+      throw new BadRequestException("Tài khoản đã được kích hoạt!");
+    }
+
+    // send email
+    const codeId = uuidv4();
+    await user.updateOne({
+      codeId: codeId,
+      codeExpired: dayjs().add(5, 'minutes')
+    })
+    this.mailerService.sendMail({
+      to: user.email,
+      subject: "Activate your account",
+      template: "register",
+      context: {
+        name: user?.name ?? user.email,
+        activationCode: codeId,
+      },
+    });
+
+    return { _id: user._id };
+  }
 }
