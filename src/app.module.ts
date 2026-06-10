@@ -55,7 +55,7 @@ import { TransformInterceptor } from './core/transform.interceptor';
         defaults: {
           from: config.get('MAIL_FROM'),
         },
-        preview: true,
+        preview: false,
         template: {
           dir: process.cwd() + '/src/mail/templates/',
           adapter: new HandlebarsAdapter(),
