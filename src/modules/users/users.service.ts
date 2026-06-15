@@ -78,7 +78,15 @@ export class UsersService {
       .select("-password") //loại trường password khỏi results
       .sort(sort as any);
 
-    return { results, totalPages };
+    return {
+      meta: {
+        current: current, // trang hiện tại
+        pageSize: pageSize, // số lượng bản ghi đã lấy
+        pages: totalPages, // tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (bản ghi)
+      },
+      results 
+    };
   }
 
   findById(id: number) {
