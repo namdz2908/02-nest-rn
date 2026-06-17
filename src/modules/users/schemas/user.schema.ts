@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -37,6 +37,9 @@ export class User {
 
     @Prop()
     codeExpired: Date;
+
+    @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Restaurant' })
+    restaurants: mongoose.Schema.Types.ObjectId[];
 
 }
 
