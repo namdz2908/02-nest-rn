@@ -102,13 +102,24 @@ export class MenuItemsService {
     );
   }
 
-  async bulkUpdate(ids: string[], basePrice?: number, enabled?: boolean) {
+  async bulkUpdate(ids: string[], basePrice?: number, enabled?: boolean, category?: string, description?: string) {
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       throw new BadRequestException('Danh sách IDs không hợp lệ');
     }
     const updateDoc: any = {};
     if (basePrice !== undefined) updateDoc.basePrice = basePrice;
     if (enabled !== undefined) updateDoc.enabled = enabled;
+    if (category !== undefined) {
+      if (category === '' || category === null) {
+        updateDoc.category = null;
+      } else {
+        if (!mongoose.isValidObjectId(category)) {
+          throw new BadRequestException('Category ID không đúng định dạng');
+        }
+        updateDoc.category = new mongoose.Types.ObjectId(category);
+      }
+    }
+    if (description !== undefined) updateDoc.description = description;
 
     const objectIds = ids.map(id => {
       if (!mongoose.isValidObjectId(id)) {

@@ -27,8 +27,8 @@ export class MenuItemsController {
   }
 
   @Patch('bulk')
-  bulkUpdate(@Body() bulkDto: { ids: string[], basePrice?: number, enabled?: boolean }) {
-    return this.menuItemsService.bulkUpdate(bulkDto.ids, bulkDto.basePrice, bulkDto.enabled);
+  bulkUpdate(@Body() bulkDto: { ids: string[], basePrice?: number, enabled?: boolean, category?: string, description?: string }) {
+    return this.menuItemsService.bulkUpdate(bulkDto.ids, bulkDto.basePrice, bulkDto.enabled, bulkDto.category, bulkDto.description);
   }
 
   @Patch(':id')
