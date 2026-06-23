@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
+import { Order } from '@/modules/orders/schemas/order.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/utils';
@@ -14,9 +15,10 @@ import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name)
-  private userModel: Model<User>,
-    private readonly mailerService: MailerService
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Order.name) private orderModel: Model<Order>,
+    private readonly mailerService: MailerService,
   ) { }
 
   isEmailExist = async (email: string) => {
@@ -89,8 +91,19 @@ export class UsersService {
     };
   }
 
-  findById(id: number) {
-    return `This action returns a #${id} user`;
+  async findById(id: string) {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new BadRequestException('Id không đúng định dạng của mongoose');
+    }
+    const user = await this.userModel.findById(id).select('-password').exec();
+    if (!user) {
+      throw new BadRequestException('Người dùng không tồn tại');
+    }
+    const orders = await this.orderModel.find({ user: user._id })
+      .populate('restaurant', 'name')
+      .sort({ orderTime: -1 })
+      .exec();
+    return { user, orders };
   }
 
   async findByEmail(email: string) {
