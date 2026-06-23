@@ -24,6 +24,12 @@ export class Review {
     @Prop()
     comment: string;
 
+    @Prop({ default: 'pending' })
+    status: string; // pending | approved | rejected
+
+    @Prop()
+    adminReply: string;
+
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
