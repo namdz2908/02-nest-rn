@@ -13,22 +13,33 @@ export class ReviewsController {
   }
 
   @Get()
-  findAll() {
-    return this.reviewsService.findAll();
+  findAll(@Body() body?: any) {
+    // Optionally accept query in body for complex filtering
+    return this.reviewsService.findAll(body?.query);
+  }
+
+  @Get('distribution/:restaurantId')
+  ratingDistribution(@Param('restaurantId') restaurantId: string) {
+    return this.reviewsService.getRatingDistribution(restaurantId);
+  }
+
+  @Post(':id/reply')
+  reply(@Param('id') id: string, @Body('adminReply') adminReply: string) {
+    return this.reviewsService.addAdminReply(id, adminReply);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.reviewsService.findOne(+id);
+    return this.reviewsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-    return this.reviewsService.update(+id, updateReviewDto);
+    return this.reviewsService.update(id, updateReviewDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.reviewsService.remove(+id);
+    return this.reviewsService.remove(id);
   }
 }
