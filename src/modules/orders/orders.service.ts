@@ -22,15 +22,46 @@ export class OrdersService {
     @InjectModel(Menu.name) private menuModel: Model<Menu>,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto) {
-    const { restaurant, user, status, totalPrice, orderTime } = createOrderDto as any;
-    return this.orderModel.create({
-      restaurant: new mongoose.Types.ObjectId(restaurant),
-      user: new mongoose.Types.ObjectId(user),
-      status: status || 'pending',
+  async create(createOrderDto: CreateOrderDto, user: any) {
+    const { restaurantId, items, orderType, paymentMethod, totalPrice, deliveryAddress, tableNumber, phone, notes } = createOrderDto;
+    
+    // Validate restaurant exists
+    const restaurant = await this.restaurantModel.findById(restaurantId);
+    if (!restaurant) {
+      throw new BadRequestException('Restaurant not found');
+    }
+
+    const userId = user?._id || user?.id;
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    // Create the order
+    const order = await this.orderModel.create({
+      restaurant: new mongoose.Types.ObjectId(restaurantId),
+      user: new mongoose.Types.ObjectId(userId),
+      status: 'Pending',
       totalPrice,
-      orderTime: orderTime ? new Date(orderTime) : new Date(),
+      orderType,
+      paymentMethod,
+      deliveryAddress,
+      tableNumber,
+      phone,
+      notes,
+      orderTime: new Date(),
     });
+
+    // Create order details for each item
+    for (const item of items) {
+      await this.orderDetailModel.create({
+        order: order._id,
+        menuItem: new mongoose.Types.ObjectId(item.menuItemId),
+        quantity: item.quantity,
+        price: item.price,
+      });
+    }
+
+    return order;
   }
 
   async seed() {

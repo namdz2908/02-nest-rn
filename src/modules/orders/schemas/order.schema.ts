@@ -13,18 +13,35 @@ export class Order {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
     user: mongoose.Schema.Types.ObjectId;
 
-    @Prop()
+    @Prop({ default: 'Pending' })
     status: string;
 
-    @Prop()
+    @Prop({ required: true })
     totalPrice: number;
 
-    @Prop()
+    @Prop({ default: () => new Date() })
     orderTime: Date;
 
     @Prop()
     deliveryTime: Date;
 
+    @Prop({ enum: ['delivery', 'dine-in'], required: true })
+    orderType: string;
+
+    @Prop()
+    deliveryAddress: string;
+
+    @Prop()
+    tableNumber: string;
+
+    @Prop()
+    phone: string;
+
+    @Prop()
+    notes: string;
+
+    @Prop({ enum: ['cash', 'card', 'online'], default: 'cash' })
+    paymentMethod: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

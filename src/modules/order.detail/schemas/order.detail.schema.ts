@@ -20,6 +20,12 @@ export class OrderDetail {
 
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: MenuItemOption.name })
     menuItemOption: mongoose.Schema.Types.ObjectId;
+
+    @Prop({ required: true, default: 1 })
+    quantity: number;
+
+    @Prop({ required: true })
+    price: number;
 }
 
 export const OrderDetailSchema = SchemaFactory.createForClass(OrderDetail);
