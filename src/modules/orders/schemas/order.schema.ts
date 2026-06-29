@@ -13,7 +13,7 @@ export class Order {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
     user: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ default: 'Pending' })
+    @Prop({ default: 'pending' })
     status: string;
 
     @Prop({ required: true })

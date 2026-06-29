@@ -23,7 +23,7 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: any) {
-    const { restaurantId, items, orderType, paymentMethod, totalPrice, deliveryAddress, tableNumber, phone, notes } = createOrderDto;
+    const { restaurantId, items, orderType, paymentMethod, deliveryAddress, tableNumber, phone, notes } = createOrderDto;
     
     // Validate restaurant exists
     const restaurant = await this.restaurantModel.findById(restaurantId);
@@ -36,12 +36,31 @@ export class OrdersService {
       throw new BadRequestException('User not authenticated');
     }
 
-    // Create the order
+    // Tính lại totalPrice từ DB để tránh gian lận giá từ client
+    let serverTotalPrice = 0;
+    const validatedItems: Array<{ menuItemId: string; quantity: number; actualPrice: number }> = [];
+    for (const item of items) {
+      if (!mongoose.isValidObjectId(item.menuItemId)) {
+        throw new BadRequestException(`menuItemId ${item.menuItemId} không đúng định dạng`);
+      }
+      const menuItem = await this.menuItemModel.findById(item.menuItemId);
+      if (!menuItem) {
+        throw new BadRequestException(`Món ăn không tồn tại: ${item.menuItemId}`);
+      }
+      if (!menuItem.enabled) {
+        throw new BadRequestException(`Món ăn đã ngừng phục vụ: ${menuItem.title}`);
+      }
+      const actualPrice = menuItem.basePrice;
+      serverTotalPrice += actualPrice * item.quantity;
+      validatedItems.push({ menuItemId: item.menuItemId, quantity: item.quantity, actualPrice });
+    }
+
+    // Create the order với giá được tính từ server
     const order = await this.orderModel.create({
       restaurant: new mongoose.Types.ObjectId(restaurantId),
       user: new mongoose.Types.ObjectId(userId),
-      status: 'Pending',
-      totalPrice,
+      status: 'pending',
+      totalPrice: serverTotalPrice,
       orderType,
       paymentMethod,
       deliveryAddress,
@@ -51,13 +70,13 @@ export class OrdersService {
       orderTime: new Date(),
     });
 
-    // Create order details for each item
-    for (const item of items) {
+    // Create order details với giá từ DB, không từ client
+    for (const item of validatedItems) {
       await this.orderDetailModel.create({
         order: order._id,
         menuItem: new mongoose.Types.ObjectId(item.menuItemId),
         quantity: item.quantity,
-        price: item.price,
+        price: item.actualPrice,
       });
     }
 
