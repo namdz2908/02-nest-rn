@@ -258,11 +258,16 @@ export class UsersService {
       throw new BadRequestException("Tài khoản không tồn tại!");
     }
 
-    // check code
+    // Kiểm tra code hợp lệ (phải khớp với codeId đã gửi qua email)
+    if (user.codeId !== data.code) {
+      throw new BadRequestException("Mã xác nhận không hợp lệ!");
+    }
+
+    // check code còn hạn
     const isBeforeCheck = dayjs().isBefore(user.codeExpired)
 
     if (isBeforeCheck) {
-      // valid => update passwrod
+      // valid => update password
       const newPassword = await hashPasswordHelper(data.password);
       await user.updateOne({ password: newPassword })
 

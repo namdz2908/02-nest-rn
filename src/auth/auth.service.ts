@@ -36,15 +36,12 @@ export class AuthService {
 
     if (!isValidPassword) return null;
 
+    // Kiểm tra tài khoản đã được kích hoạt chưa
+    if (!user.isActive) {
+      throw new UnauthorizedException('Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email để xác thực!');
+    }
+
     return user;
-
-    // const payload = { sub: user._id, username: user.email };
-    // return {
-    //   // 💡 Here the JWT secret key that's used for signing the payload 
-    //   // is the key that was passed in the JwtModule
-    //   access_token: await this.jwtService.signAsync(payload),
-    // };
-
   }
 
   async login(user: any) {
