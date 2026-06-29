@@ -3,6 +3,7 @@ import { CreateMenuItemDto } from './dto/create-menu.item.dto';
 import { UpdateMenuItemDto } from './dto/update-menu.item.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { MenuItem } from './schemas/menu.item.schema';
+import { Menu } from '../menus/schemas/menu.schema';
 import mongoose, { Model } from 'mongoose';
 import aqp from 'api-query-params';
 
@@ -11,6 +12,8 @@ export class MenuItemsService {
   constructor(
     @InjectModel(MenuItem.name)
     private menuItemModel: Model<MenuItem>,
+    @InjectModel(Menu.name)
+    private menuModel: Model<Menu>,
   ) {}
 
   async create(createMenuItemDto: CreateMenuItemDto) {
@@ -31,8 +34,19 @@ export class MenuItemsService {
     if (filter.current) delete filter.current;
     if (filter.pageSize) delete filter.pageSize;
 
-    // Support menuId parameter mapping to menu field
-    if (filter.menuId) {
+    // Support restaurantId: lấy tất cả menus thuộc nhà hàng đó, rồi filter item theo menu
+    if (filter.restaurantId) {
+      if (!mongoose.isValidObjectId(filter.restaurantId)) {
+        throw new BadRequestException('restaurantId không đúng định dạng');
+      }
+      const menus = await this.menuModel.find({
+        restaurant: new mongoose.Types.ObjectId(filter.restaurantId),
+      }).select('_id');
+      const menuIds = menus.map((m) => m._id);
+      filter.menu = { $in: menuIds };
+      delete filter.restaurantId;
+    } else if (filter.menuId) {
+      // Support menuId parameter mapping to menu field
       filter.menu = new mongoose.Types.ObjectId(filter.menuId);
       delete filter.menuId;
     } else if (filter.menu) {

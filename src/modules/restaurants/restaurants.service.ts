@@ -47,8 +47,9 @@ export class RestaurantsService {
     if (!current) current = 1;
     if (!pageSize) pageSize = 10;
 
-    // Filter by user's owned restaurants if user info is present
-    if (user && user._id) {
+    // Chỉ lọc theo nhà hàng sở hữu nếu là ADMIN hoặc OWNER
+    // Customer (role = USERS) có thể xem toàn bộ nhà hàng để đặt đồ ăn
+    if (user && user._id && user.accountRole && user.accountRole !== 'USERS') {
       const userDb = await this.userModel.findById(user._id);
       const restaurantIds = userDb?.restaurants || [];
       filter._id = { $in: restaurantIds };
